@@ -1,0 +1,35 @@
+{
+  "name": "test",
+  "version": "0.0.1",
+  "description": "Test",
+  "keywords": [
+    "solidity",
+    "library",
+    "preprocessor",
+    "smart-contract"
+  ],
+  "author": {
+    "name": "Vsevolod Novikov",
+    "email": "nnseva@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "Vsevolod Novikov",
+      "email": "nnseva@gmail.com"
+    }
+  ],
+  "files": [
+    "package.json"
+  ],
+  "license": "LGPL-3.0-or-later",
+  "dependencies": {
+    "node": "^20.19.0",
+    "ranjs": "^1.24.5"
+  },
+  "devDependencies": {
+    "@atixlabs/hardhat-time-n-mine": "^0.0.5",
+    "@nomicfoundation/hardhat-ethers": "^3.0.8",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "ethers": "^6.13.5"
+  }
+}
