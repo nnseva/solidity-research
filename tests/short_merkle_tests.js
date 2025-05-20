@@ -7,13 +7,13 @@
 // The code is not intended to be used in production
 // and is for educational purposes only
 
-// Micro-Solidity VM investigation
-var investigate = function(width, slot_bits, mapkey_bits, shift, fill_arrays, fill_mappings) {
-    // width [K] = Number of bits in the address space
+// Micro-Solidity VM Storage investigation
+var investigate = function(width, slot_bits, shift, contract_address) {
+    // width [K] = Number of bits in the m-p-tree address space
     // slot_bits [S] = Slots index bits
-    // mapkey_bits [M] = Mapping key bits
     // shift = we use different shift values to approve that the hash does not
     // depend on the bits selection in the shortened hash function
+    // contract_address = address of the contract to create m-tree storage address
 
     const kecc = function(data) {
         // Hash the data and return the hash
@@ -23,63 +23,32 @@ var investigate = function(width, slot_bits, mapkey_bits, shift, fill_arrays, fi
     }
     this.kecc = kecc;
 
-    const arrayof = function(slot) {
-        // Returns the dynamic array area starting address
-        // basing on the slot
-        slot = BigInt(slot);
-        return kecc(ethers.toBeHex(slot, Math.ceil(width / 8)));
-    }
-    this.arrayof = arrayof;
-
-    const mappingof = function(key, slot) {
-        // Returns the mapping member area starting address
+    const addressof = function(address, slot) {
+        // Returns the m-tree storage address
         // basing on the slot and the key
-        key = BigInt(key);
+        address = BigInt(address);
         slot = BigInt(slot);
         // The slot is used as a lower part of the hash source
-        // The key is used as a higher part of the hash source
+        // The address is used as a higher part of the hash source
         // The hash source has the widht twice of the address space
         // aligned to the 8-bit byte
         // The hash is calculated as a shortened keccak hash
         // of the slot and the key as in the original Solidity
-        return kecc(ethers.toBeHex(slot + 2n ** BigInt(width) * key, Math.ceil(width / 4)));
+        return kecc(ethers.toBeHex(slot + 2n ** BigInt(width) * address, Math.ceil(width / 4)));
     };
-    this.mappingof = mappingof;
+    this.addressof = addressof;
 
     this.analize = function() {
         var conflicts = [];
         var used_slots = [];
-        // Fill the slots used by static data
-        used_slots.push({
-            address: 2n**BigInt(slot_bits),
-            kind: 's',
-        });
-        // Fill the slots used by arrays
-        if(fill_arrays) {
-            console.log(`Filling the slots used by arrays`);
-            for(var i=0n; i < 2n ** BigInt(slot_bits); i++) {
-                var address = arrayof(i);
-                used_slots.push({
-                    address: address,
-                    slot: i,
-                    kind: 'a'
-                });
-            }
-        }
-        // Fill the slots used by mappings
-        if(fill_mappings) {
-            console.log(`Filling the slots used by mappings`);
-            for(var i=0n; i < 2n ** BigInt(slot_bits); i++) {
-                for(var j=0; j < 2n ** BigInt(mapkey_bits); j++) {
-                    var address = mappingof(j, i);
-                    used_slots.push({
-                        address: address,
-                        slot: i,
-                        key: j,
-                        kind: 'm'
-                    });
-                }
-            }
+        // Fill the slots used by storage
+        console.log(`Filling the slots used by arrays`);
+        for(var i=0n; i < 2n ** BigInt(slot_bits); i++) {
+            var address = addressof(contract_address, i);
+            used_slots.push({
+                address: address,
+                slot: i,
+            });
         }
         // Sort the used slots by address
         used_slots.sort((a, b) => (a.address < b.address ? -1 : a.address == b.address ? 0 : 1));
